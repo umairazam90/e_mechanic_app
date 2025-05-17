@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "552160032324",
+    "project_id": "e-mechanic-3e163",
+    "storage_bucket": "e-mechanic-3e163.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:552160032324:android:4262b80840c52f1e652e11",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzt-gUn3qx7pxjJMatUs_hkWdmeOpSAXU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
