@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart'
 final class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      return web; // Return web configuration for web platform
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -19,8 +19,6 @@ final class DefaultFirebaseOptions {
     }
   }
 
-
-  /// Firebase options for web
   static const FirebaseOptions web = FirebaseOptions(
       apiKey: "AIzaSyDXkns_nWrD6kqHt_9DnG7bhTmImgTNwio",
       authDomain: "e-mechanic-3e163.firebaseapp.com",

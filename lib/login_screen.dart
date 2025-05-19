@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'user_home_screen.dart';
 import 'mechanic_home_screen.dart';
 import 'register_screen.dart';
@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
   bool _obscurePassword = true;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Add Firestore
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> _login(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
@@ -31,11 +31,11 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         if (userCredential.user != null) {
-          // Get user role from Firestore
+
           DocumentSnapshot userDoc = await _firestore.collection('users').doc(userCredential.user!.uid).get();
           if (userDoc.exists) {
             String role = userDoc['role'];
-            // Navigate based on the role.
+
             if (role == 'mechanic') {
               Navigator.pushReplacement(
                 context,
@@ -267,14 +267,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             return;
           }
 
-
-
-          // Store user role in Firestore
           await _firestore.collection('users').doc(userId).set({
             'role': role,
           });
 
-          // Navigate based on role.  No shared preferences.
           if (role == 'mechanic') {
             Navigator.pushReplacement(
               context,

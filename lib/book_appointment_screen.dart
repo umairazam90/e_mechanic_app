@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
-import 'dart:convert'; // Import for JSON encoding/decoding
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class BookAppointmentScreen extends StatefulWidget {
   const BookAppointmentScreen({super.key});
@@ -21,7 +21,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   TimeOfDay? _selectedTime;
   String? _errorMessage;
 
-  // Function to select date
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -36,7 +35,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     }
   }
 
-  // Function to select time
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -49,7 +47,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     }
   }
 
-  // Modified _bookAppointment function to use SharedPreferences
   Future<void> _bookAppointment() async {
     if (_formKey.currentState!.validate() &&
         _selectedDate != null &&
@@ -70,8 +67,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           'status': 'Pending',
           'createdAt': DateTime.now().toIso8601String(),
         };
-
-        // Use SharedPreferences to save the appointment
         await _saveAppointmentLocal(userId, appointmentDetails);
       } else {
         setState(() {
@@ -87,7 +82,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     }
   }
 
-  // Function to save appointment data locally using SharedPreferences
   Future<void> _saveAppointmentLocal(
       String userId, Map<String, String> appointmentDetails) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -95,12 +89,11 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     List<String> existingAppointments =
         prefs.getStringList(key) ?? <String>[];
     String newAppointment = jsonEncode(appointmentDetails);
-    print('Saving appointment: $newAppointment with key: $key'); // Debugging line
+    print('Saving appointment: $newAppointment with key: $key');
     existingAppointments.add(newAppointment);
     bool success = await prefs.setStringList(key, existingAppointments);
     if (!success) {
-      print('Error saving appointment!'); // Debugging line
-      // Show a user-friendly message
+      print('Error saving appointment!');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -115,7 +108,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           const SnackBar(content: Text('Appointment booked successfully!')),
         );
       }
-      Navigator.pop(context); // Only pop if save was successful.
+      Navigator.pop(context);
     }
   }
 
@@ -142,7 +135,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              // Vehicle Make
               TextFormField(
                 controller: _vehicleMakeController,
                 decoration: const InputDecoration(
@@ -157,7 +149,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 },
               ),
               const SizedBox(height: 16.0),
-              // Vehicle Model
               TextFormField(
                 controller: _vehicleModelController,
                 decoration: const InputDecoration(
@@ -172,7 +163,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 },
               ),
               const SizedBox(height: 16.0),
-              // Vehicle Year
               TextFormField(
                 controller: _vehicleYearController,
                 decoration: const InputDecoration(
@@ -202,7 +192,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 },
               ),
               const SizedBox(height: 16.0),
-              // Location
               TextFormField(
                 controller: _locationController,
                 decoration: const InputDecoration(
@@ -217,7 +206,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 },
               ),
               const SizedBox(height: 16.0),
-              // Date Picker
               Row(
                 children: <Widget>[
                   Expanded(
@@ -235,7 +223,6 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 ],
               ),
               const SizedBox(height: 16.0),
-              // Time Picker
               Row(
                 children: <Widget>[
                   Expanded(
@@ -258,7 +245,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 onPressed: _bookAppointment,
                 child: const Text('Book Appointment'),
               ),
-              // Error Message
+
               if (_errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-// Define the loadAppointmentsLocal function
 Future<List<Map<String, dynamic>>> loadAppointmentsLocal(String userId) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final String key = 'appointments_$userId';
@@ -12,13 +12,11 @@ Future<List<Map<String, dynamic>>> loadAppointmentsLocal(String userId) async {
   if (appointmentStrings == null || appointmentStrings.isEmpty) {
     return [];
   }
-
-  // Decode each JSON string back into a Map
   return appointmentStrings.map((String appointmentString) {
     try {
       return jsonDecode(appointmentString) as Map<String, dynamic>;
     } catch (e) {
-      // Handle potential JSON decoding errors.  This is crucial!
+
       print('Error decoding appointment: $e, string: $appointmentString');
       return <String, dynamic>{}; // Return an empty map for invalid entries.
     }
@@ -29,40 +27,85 @@ class ViewPreviousAppointmentsScreen extends StatefulWidget {
   const ViewPreviousAppointmentsScreen({super.key});
 
   @override
-  State<ViewPreviousAppointmentsScreen> createState() =>
+  _ViewPreviousAppointmentsScreenState createState() =>
       _ViewPreviousAppointmentsScreenState();
 }
 
 class _ViewPreviousAppointmentsScreenState
     extends State<ViewPreviousAppointmentsScreen> {
   List<Map<String, dynamic>> _previousAppointments = [];
-  bool _isLoading = true; // Add a loading state
+  bool _isLoading = true;
+  String _userRole = '';
 
   @override
   void initState() {
     super.initState();
-    _loadPreviousAppointments();
+    _loadUserDataAndAppointments();
+  }
+
+  Future<void> _loadUserDataAndAppointments() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      await _loadUserRole(currentUser.uid);
+      await _loadPreviousAppointments();
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadUserRole(String userId) async {
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      final Map<String, dynamic>? roleData = userDoc.data() as Map<String, dynamic>?;
+      final role = roleData != null && roleData.containsKey('role')
+          ? roleData['role'] is String ? roleData['role'] : ''
+          : '';
+      setState(() {
+        _userRole = role;
+      });
+    } catch (e) {
+      print("Error loading user role: $e");
+      setState(() {
+        _userRole = '';
+      });
+    }
   }
 
   Future<void> _loadPreviousAppointments() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
-      final allAppointments =
-      await loadAppointmentsLocal(currentUser.uid); // Pass the user ID
-      setState(() {
-        _previousAppointments = allAppointments
-            .where((appointment) =>
-        appointment['userId'] == currentUser.uid &&
-            (appointment['status'] == 'Completed' ||
-                appointment['status'] == 'Cancelled'))
-            .toList();
-        _isLoading =
-        false; // Set loading to false after data is loaded.
-      });
+      List<Map<String, dynamic>> allAppointments =
+      await loadAppointmentsLocal(currentUser.uid);
+
+      if (_userRole == 'mechanic') {
+        setState(() {
+          _previousAppointments = allAppointments
+              .where((appointment) =>
+          appointment['status'] == 'Completed' ||
+              appointment['status'] == 'Cancelled')
+              .toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _previousAppointments = allAppointments
+              .where((appointment) =>
+          appointment['userId'] == currentUser.uid &&
+              (appointment['status'] == 'Completed' ||
+                  appointment['status'] == 'Cancelled'))
+              .toList();
+          _isLoading = false;
+        });
+      }
     } else {
       setState(() {
-        _isLoading =
-        false; // Set loading to false, even if there's no user.
+        _isLoading = false;
       });
     }
   }
@@ -74,7 +117,7 @@ class _ViewPreviousAppointmentsScreenState
         body: Center(
           child: CircularProgressIndicator(),
         ),
-      ); // Show a loading indicator
+      );
     }
 
     return Scaffold(

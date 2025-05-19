@@ -39,14 +39,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      debugShowCheckedModeBanner: false, // Add this line
+      debugShowCheckedModeBanner: false,
       home: FutureBuilder<Widget>(
         future: _getInitialScreen(),
         builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return snapshot.data ?? const LoginScreen();
           } else {
-            return const CircularProgressIndicator(); // Or a splash screen
+            return const CircularProgressIndicator();
           }
         },
       ),

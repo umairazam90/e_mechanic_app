@@ -59,11 +59,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String key = 'userAppointments_$userId';
     List<String> existingAppointments =
-        prefs.getStringList(key) ?? []; // Load existing data
+        prefs.getStringList(key) ?? [];
     List<String> apptStrings = existingAppointments +
-        [appointmentDetails.entries.map((entry) => '${entry.key}: ${entry.value}').join(' | ')]; // Append new data
+        [appointmentDetails.entries.map((entry) => '${entry.key}: ${entry.value}').join(' | ')];
     await prefs.setStringList(key, apptStrings);
-    _loadPreviousAppointments(userId); //reload
+    _loadPreviousAppointments(userId);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Appointment detail saved locally!')),
     );
@@ -244,8 +244,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 }
-
-// Create a new file named book_appointment_screen.dart:
 class BookAppointmentScreen extends StatefulWidget {
   final Function(Map<String, String>) onSave;
 
@@ -276,7 +274,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       body: Stack(
         children: [
           Image.asset(
-            'assets/login_background.jpg', // Using same background for consistency
+            'assets/login_background.jpg',
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
