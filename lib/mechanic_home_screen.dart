@@ -99,7 +99,7 @@ class MechanicHomeScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                             builder: (context) =>
-                            const ViewActiveAppointmentsScreen()),
+                            const ViewPreviousAppointmentsScreen1()),
                       );
                     },
                     style: ElevatedButton.styleFrom(

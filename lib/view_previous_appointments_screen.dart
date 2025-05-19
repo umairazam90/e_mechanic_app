@@ -1,16 +1,42 @@
 import 'package:flutter/material.dart';
-import 'local_storage.dart'; // Import your local storage functions
-import 'package:firebase_auth/firebase_auth.dart'; // Keep if you need user info
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
+import 'dart:convert';
+
+// Define the loadAppointmentsLocal function
+Future<List<Map<String, dynamic>>> loadAppointmentsLocal(String userId) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  final String key = 'appointments_$userId';
+  final List<String>? appointmentStrings = prefs.getStringList(key);
+
+  if (appointmentStrings == null || appointmentStrings.isEmpty) {
+    return [];
+  }
+
+  // Decode each JSON string back into a Map
+  return appointmentStrings.map((String appointmentString) {
+    try {
+      return jsonDecode(appointmentString) as Map<String, dynamic>;
+    } catch (e) {
+      // Handle potential JSON decoding errors.  This is crucial!
+      print('Error decoding appointment: $e, string: $appointmentString');
+      return <String, dynamic>{}; // Return an empty map for invalid entries.
+    }
+  }).toList();
+}
 
 class ViewPreviousAppointmentsScreen extends StatefulWidget {
   const ViewPreviousAppointmentsScreen({super.key});
 
   @override
-  State<ViewPreviousAppointmentsScreen> createState() => _ViewPreviousAppointmentsScreenState();
+  State<ViewPreviousAppointmentsScreen> createState() =>
+      _ViewPreviousAppointmentsScreenState();
 }
 
-class _ViewPreviousAppointmentsScreenState extends State<ViewPreviousAppointmentsScreen> {
+class _ViewPreviousAppointmentsScreenState
+    extends State<ViewPreviousAppointmentsScreen> {
   List<Map<String, dynamic>> _previousAppointments = [];
+  bool _isLoading = true; // Add a loading state
 
   @override
   void initState() {
@@ -19,21 +45,38 @@ class _ViewPreviousAppointmentsScreenState extends State<ViewPreviousAppointment
   }
 
   Future<void> _loadPreviousAppointments() async {
-    final allAppointments = await loadAppointmentsLocal();
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
+      final allAppointments =
+      await loadAppointmentsLocal(currentUser.uid); // Pass the user ID
       setState(() {
         _previousAppointments = allAppointments
             .where((appointment) =>
         appointment['userId'] == currentUser.uid &&
-            (appointment['status'] == 'Completed' || appointment['status'] == 'Cancelled'))
+            (appointment['status'] == 'Completed' ||
+                appointment['status'] == 'Cancelled'))
             .toList();
+        _isLoading =
+        false; // Set loading to false after data is loaded.
+      });
+    } else {
+      setState(() {
+        _isLoading =
+        false; // Set loading to false, even if there's no user.
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ); // Show a loading indicator
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Previous Appointments'),
@@ -51,7 +94,9 @@ class _ViewPreviousAppointmentsScreenState extends State<ViewPreviousAppointment
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text('Vehicle: ${appointment['vehicleMake']} ${appointment['vehicleModel']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                      'Vehicle: ${appointment['vehicleMake']} ${appointment['vehicleModel']}',
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   Text('Service: ${appointment['serviceType']}'),
                   Text('Date: ${appointment['preferredDate']}'),
                   Text('Time: ${appointment['preferredTime']}'),
@@ -66,3 +111,4 @@ class _ViewPreviousAppointmentsScreenState extends State<ViewPreviousAppointment
     );
   }
 }
+
